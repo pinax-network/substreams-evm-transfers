@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+// erc20.events.v1: standard ERC-20 Transfer and Approval evidence from
+// Extended blocks (issue #19), separate from balance state and from wallet
+// labels. One row per emitted log that carries the standard signature; the
+// consumer decides send versus receive, grouping and intent.
+//
+// Contract rules (shared with evm.executions.v1): flat rows, one sink table
+// per top-level repeated field; exact integers as decimal strings; bytes for
+// addresses and hashes; `persisted` separates receipt logs from attempts in
+// reverted frames; no finality (stream undo contract); explicit enums with an
+// UNSPECIFIED zero.
+//
+// Classification limits: the ERC-20 and ERC-721 `Transfer`/`Approval`
+// signatures share topic0. Rows are classified by log shape only
+// (`LogShape`); no contract is asserted to be an ERC-20 token, and a matching
+// signature is not proof of a balance change. Fee-on-transfer, rebasing and
+// silent updates are outside event evidence. An `Approval` log is an emitted
+// event; the approve/permit call intent (evm/executions selectors) and the
+// allowance storage state are different facts that this package does not
+// carry.
+package erc20.events.v1;
+
+message Events {
+  // Exactly one row per delivered block.
+  repeated BlockClock clocks = 1;
+  repeated Transfer transfers = 2;
+  repeated Approval approvals = 3;
+}
+
+// Shape of the log relative to the ERC-20 ABI encoding.
+enum LogShape {
+  LOG_SHAPE_UNSPECIFIED = 0;
+  // Three topics with canonically padded addresses and exactly 32 bytes of
+  // data: the ERC-20 encoding.
+  LOG_SHAPE_ERC20 = 1;
+  // Four topics with padded addresses and no data: the ERC-721 encoding
+  // (`tokenId` indexed). Reported for the consumer's classification; the
+  // `amount`/`value` field then carries the token id, not a quantity.
+  LOG_SHAPE_ERC721 = 2;
+  // Same topic0 but neither shape: nonstandard encodings are kept as facts
+  // with raw sizes and no decoded participants.
+  LOG_SHAPE_NONSTANDARD = 3;
+}
+
+enum Scope {
+  SCOPE_UNSPECIFIED = 0;
+  SCOPE_TRANSACTION = 1;
+  SCOPE_SYSTEM_CALL = 2;
+}
+
+message BlockClock {
+  uint64 chain_id = 1;
+  uint64 number = 2;
+  bytes hash = 3;
+  bytes parent_hash = 4;
+  uint64 timestamp = 5;
+  bytes state_root = 6;
+  uint32 producer_version = 7;
+  uint32 spec_revision = 8;
+  string package = 9;
+  string package_version = 10;
+  string parameters_sha256 = 11;
+  uint32 transfer_count = 12;
+  uint32 approval_count = 13;
+}
+
+// One `Transfer(address,address,uint256)`-signed log.
+// Identity: (scope, transaction_hash, ordinal). Sort: (scope,
+// transaction_index, ordinal, call_index, log_index).
+message Transfer {
+  uint64 chain_id = 1;
+  Scope scope = 2;
+  bytes transaction_hash = 3;
+  uint32 transaction_index = 4;
+  uint32 call_index = 5;
+  // Producer log index within the transaction; only persisted logs are
+  // receipt logs.
+  uint32 log_index = 6;
+  // Index within the block's persisted logs; 0 for attempts.
+  uint32 block_index = 7;
+  uint64 ordinal = 8;
+  // Emitting contract.
+  bytes token = 9;
+  LogShape shape = 10;
+  // Decoded only for ERC20 and ERC721 shapes; empty otherwise.
+  bytes from = 11;
+  bytes to = 12;
+  // ERC20: the raw integer amount. ERC721: the token id. Empty for nonstandard.
+  string amount = 13;
+  uint32 topic_count = 14;
+  uint32 data_size = 15;
+  // Convenience facts, never labels: `from` is the zero address; `to` is the
+  // zero address; `from == to`.
+  bool from_zero = 16;
+  bool to_zero = 17;
+  bool self_transfer = 18;
+  // The log survived: succeeded transaction and non-reverted frame, or a
+  // non-reverted system call.
+  bool persisted = 19;
+}
+
+// One `Approval(address,address,uint256)`-signed log.
+// Identity and sort as Transfer.
+message Approval {
+  uint64 chain_id = 1;
+  Scope scope = 2;
+  bytes transaction_hash = 3;
+  uint32 transaction_index = 4;
+  uint32 call_index = 5;
+  uint32 log_index = 6;
+  uint32 block_index = 7;
+  uint64 ordinal = 8;
+  bytes token = 9;
+  LogShape shape = 10;
+  bytes owner = 11;
+  bytes spender = 12;
+  // ERC20: the approved value. ERC721: the token id. Empty for nonstandard.
+  string value = 13;
+  uint32 topic_count = 14;
+  uint32 data_size = 15;
+  // `value` is 2^256-1.
+  bool unlimited = 16;
+  // `value` is zero (a revocation-shaped event).
+  bool zero_value = 17;
+  bool persisted = 18;
+}

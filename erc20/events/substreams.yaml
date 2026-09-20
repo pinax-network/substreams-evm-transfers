@@ -1,0 +1,24 @@
+specVersion: v0.1.0
+package:
+  name: erc20_events
+  version: v0.1.0
+  url: https://github.com/pinax-network/substreams-evm-extended
+  description: Standard ERC-20 Transfer and Approval log evidence; not balance state, not wallet labels.
+protobuf:
+  files: [erc20_events.proto]
+  importPaths: [../../proto/v1]
+binaries:
+  default:
+    type: wasm/rust-v1
+    file: ../../target/wasm32-unknown-unknown/release/erc20_events.wasm
+modules:
+  - name: map_events
+    kind: map
+    inputs:
+      - params: string
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:erc20.events.v1.Events
+params:
+  map_events: '{"chain_id":56,"producer_versions":[5]}'
+network: bsc
