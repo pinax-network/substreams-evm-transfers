@@ -65,8 +65,8 @@ pub fn parse(params: &str) -> Result<Config, Error> {
     let parsed: Params = serde_json::from_str(params).map_err(|e| Error::msg(format!("invalid erc20 events params: {e}")))?;
     require(parsed.chain_id > 0, "chain_id required")?;
     require(
-        !parsed.producer_versions.is_empty() && parsed.producer_versions.iter().all(|v| *v > 0),
-        "qualified producer versions required",
+        !parsed.producer_versions.is_empty() && parsed.producer_versions.iter().all(|v| matches!(v, 4 | 5)),
+        "producer_versions must be a nonempty subset of the reviewed Extended versions 4 and 5",
     )?;
     Ok(Config {
         params: parsed,

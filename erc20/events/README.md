@@ -48,6 +48,9 @@ adapters if requested.
 {"chain_id":56,"producer_versions":[5],"include_attempted":true}
 ```
 
+`producer_versions` must be a nonempty subset of the reviewed Extended versions
+4 and 5. Unreviewed versions are rejected even when explicitly listed.
+
 ## Evidence
 
 Rust tests replay the complete captured BSC block 122260950: 121 `Transfer`

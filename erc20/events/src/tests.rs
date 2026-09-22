@@ -1,4 +1,14 @@
 use super::*;
+
+#[test]
+fn only_reviewed_producer_versions_can_be_configured() {
+    for versions in ["[]", "[0]", "[-1]", "[3]", "[6]", "[999]", "[4,999]"] {
+        assert!(parse(&format!(r#"{{"chain_id":56,"producer_versions":{versions}}}"#)).is_err());
+    }
+    for versions in ["[4]", "[5]", "[4,5]"] {
+        assert!(parse(&format!(r#"{{"chain_id":56,"producer_versions":{versions}}}"#)).is_ok());
+    }
+}
 use prost::Message;
 
 const FULL_BLOCK: &[u8] = include_bytes!("../../balances/tests/fixtures/bsc-122260950.pb");
