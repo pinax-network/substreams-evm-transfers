@@ -116,8 +116,9 @@ fn captured_block_classifies_every_transfer_and_approval_signature() {
 
 #[test]
 fn wrapped_native_deposit_emits_no_transfer_evidence_while_the_balance_changed() {
-    // The storage mapper emits the depositor's WBNB balance (see
-    // erc20/balances wbnb_mutation_tests); event evidence alone cannot.
+    // Event evidence alone cannot give the depositor's WBNB balance, and
+    // neither can erc20/balances inference (a Deposit never votes). The former
+    // layout path could (wbnb_mutation_tests at 9b41c7f).
     let block = eth::Block::decode(WBNB_DEPOSIT).unwrap();
     let events = project(&block, &config()).unwrap();
     let wbnb = hex::decode(WBNB).unwrap();
