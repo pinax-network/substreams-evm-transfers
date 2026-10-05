@@ -29,7 +29,7 @@ without decoded participants. No emitter is asserted to be a token, and a
 matching signature is not proof of a balance change: fee-on-transfer,
 rebasing and silent updates are outside event evidence, and a WETH9-style
 `deposit()` changes a balance without any `Transfer`
-([non-Transfer corpus](../balances/docs/non-transfer-mutations.md)).
+([non-Transfer corpus](https://github.com/pinax-network/substreams-evm-extended/blob/9b41c7f/erc20/balances/docs/non-transfer-mutations.md)).
 
 **Persisted versus attempted.** `persisted` is true for logs of non-reverted
 frames in succeeded transactions and for non-reverted system calls; those
