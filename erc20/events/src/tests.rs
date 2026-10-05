@@ -9,7 +9,7 @@ fn only_reviewed_producer_versions_can_be_configured() {
         assert!(parse(&format!(r#"{{"chain_id":56,"producer_versions":{versions}}}"#)).is_ok());
     }
 }
-use prost::Message;
+use buffa::Message;
 
 const FULL_BLOCK: &[u8] = include_bytes!("../../balances/tests/fixtures/bsc-122260950.pb");
 const WBNB_DEPOSIT: &[u8] = include_bytes!("../../balances/tests/fixtures/wbnb-mutations/122288015-tx18-deposit-nested-no-transfer.pb");
@@ -24,12 +24,16 @@ fn block() -> eth::Block {
         ver: 5,
         number: 100,
         hash: vec![1; 32],
-        detail_level: eth::block::DetailLevel::DetaillevelExtended as i32,
-        header: Some(eth::BlockHeader {
+        detail_level: eth::block::DetailLevel::DetaillevelExtended.into(),
+        header: buffa::MessageField::some(eth::BlockHeader {
             number: 100,
             parent_hash: vec![2; 32],
             state_root: vec![3; 32],
-            timestamp: Some(prost_types::Timestamp { seconds: 1789000000, nanos: 0 }),
+            timestamp: buffa::MessageField::some(buffa_types::google::protobuf::Timestamp {
+                seconds: 1789000000,
+                nanos: 0,
+                ..Default::default()
+            }),
             ..Default::default()
         }),
         ..Default::default()
@@ -37,7 +41,7 @@ fn block() -> eth::Block {
 }
 fn tx(calls: Vec<eth::Call>) -> eth::TransactionTrace {
     eth::TransactionTrace {
-        status: eth::TransactionTraceStatus::Succeeded as i32,
+        status: eth::TransactionTraceStatus::Succeeded.into(),
         hash: vec![7; 32],
         index: 3,
         calls,
@@ -61,14 +65,14 @@ fn transfer_log(from: Vec<u8>, to: Vec<u8>, data: Vec<u8>, ordinal: u64) -> eth:
 
 #[test]
 fn captured_block_classifies_every_transfer_and_approval_signature() {
-    let block = eth::Block::decode(FULL_BLOCK).unwrap();
+    let block = eth::Block::decode_from_slice(FULL_BLOCK).unwrap();
     let events = project(&block, &config()).unwrap();
     assert_eq!((events.transfers.len(), events.approvals.len()), (121, 21));
     assert_eq!((events.clocks[0].transfer_count, events.clocks[0].approval_count), (121, 21));
     assert!(events
         .transfers
         .iter()
-        .all(|t| t.shape == pb::LogShape::Erc20 as i32 && t.from.len() == 20 && t.to.len() == 20 && !t.amount.is_empty()));
+        .all(|t| t.shape == pb::LogShape::Erc20 && t.from.len() == 20 && t.to.len() == 20 && !t.amount.is_empty()));
     assert_eq!(events.transfers.iter().filter(|t| t.persisted).count(), 110);
     assert_eq!(events.approvals.iter().filter(|a| a.persisted).count(), 17);
     assert_eq!(events.approvals.iter().filter(|a| a.zero_value).count(), 8);
@@ -90,7 +94,7 @@ fn captured_block_classifies_every_transfer_and_approval_signature() {
     let receipt_signed = block
         .transaction_traces
         .iter()
-        .filter_map(|t| t.receipt.as_ref())
+        .filter_map(|t| t.receipt.as_option())
         .flat_map(|r| &r.logs)
         .filter(|l| {
             l.topics
@@ -111,7 +115,7 @@ fn captured_block_classifies_every_transfer_and_approval_signature() {
     assert!(events
         .transfers
         .windows(2)
-        .all(|w| (w[0].scope, w[0].transaction_index, w[0].ordinal) <= (w[1].scope, w[1].transaction_index, w[1].ordinal)));
+        .all(|w| (w[0].scope.to_i32(), w[0].transaction_index, w[0].ordinal) <= (w[1].scope.to_i32(), w[1].transaction_index, w[1].ordinal)));
 }
 
 #[test]
@@ -119,7 +123,7 @@ fn wrapped_native_deposit_emits_no_transfer_evidence_while_the_balance_changed()
     // Event evidence alone cannot give the depositor's WBNB balance, and
     // neither can erc20/balances inference (a Deposit never votes). The former
     // layout path could (wbnb_mutation_tests at 9b41c7f).
-    let block = eth::Block::decode(WBNB_DEPOSIT).unwrap();
+    let block = eth::Block::decode_from_slice(WBNB_DEPOSIT).unwrap();
     let events = project(&block, &config()).unwrap();
     let wbnb = hex::decode(WBNB).unwrap();
     assert!(events.transfers.iter().all(|t| t.token != wbnb));
@@ -128,7 +132,7 @@ fn wrapped_native_deposit_emits_no_transfer_evidence_while_the_balance_changed()
 
 #[test]
 fn reverted_child_transfers_are_attempts_and_the_persisted_ones_are_receipt_logs() {
-    let block = eth::Block::decode(REVERTED_CHILD).unwrap();
+    let block = eth::Block::decode_from_slice(REVERTED_CHILD).unwrap();
     let events = project(&block, &config()).unwrap();
     let wbnb = hex::decode(WBNB).unwrap();
     let rows: Vec<_> = events.transfers.iter().filter(|t| t.token == wbnb).collect();
@@ -226,7 +230,7 @@ fn failed_transactions_system_calls_and_parameters_follow_the_contract() {
         logs: vec![transfer_log(padded(4), padded(5), vec![0; 32], 1)],
         ..Default::default()
     }]);
-    failed.status = eth::TransactionTraceStatus::Reverted as i32;
+    failed.status = eth::TransactionTraceStatus::Reverted.into();
     b.transaction_traces = vec![failed];
     b.system_calls = vec![eth::Call {
         logs: vec![transfer_log(padded(6), padded(7), vec![0; 32], 9)],
@@ -234,9 +238,9 @@ fn failed_transactions_system_calls_and_parameters_follow_the_contract() {
     }];
     let events = project(&b, &config()).unwrap();
     assert_eq!(events.transfers.len(), 2);
-    let system = events.transfers.iter().find(|t| t.scope == pb::Scope::SystemCall as i32).unwrap();
+    let system = events.transfers.iter().find(|t| t.scope == pb::Scope::SystemCall).unwrap();
     assert!(system.persisted && system.transaction_hash.is_empty());
-    let attempted = events.transfers.iter().find(|t| t.scope == pb::Scope::Transaction as i32).unwrap();
+    let attempted = events.transfers.iter().find(|t| t.scope == pb::Scope::Transaction).unwrap();
     assert!(!attempted.persisted);
     assert!(parse(r#"{"chain_id":56,"producer_versions":[]}"#).is_err());
     assert!(parse(r#"{"chain_id":56,"producer_versions":[5],"x":1}"#).is_err());
