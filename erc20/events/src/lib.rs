@@ -75,21 +75,21 @@ pub fn parse(params: &str) -> Result<Config, Error> {
 }
 
 pub fn validate_block(block: &eth::Block, config: &Config) -> Result<u64, Error> {
-    require(
-        block.detail_level == eth::block::DetailLevel::DetaillevelExtended as i32,
-        "Extended blocks required",
-    )?;
+    require(block.detail_level == eth::block::DetailLevel::DetaillevelExtended, "Extended blocks required")?;
     require(config.params.producer_versions.contains(&block.ver), "Extended producer version not qualified")?;
-    let header = block.header.as_ref().ok_or_else(|| Error::msg("missing header"))?;
+    let header = block.header.as_option().ok_or_else(|| Error::msg("missing header"))?;
     require(
         block.hash.len() == 32 && header.parent_hash.len() == 32 && header.state_root.len() == 32,
         "invalid block identity",
     )?;
     require(header.number == block.number, "header number mismatch")?;
-    let timestamp = header.timestamp.as_ref().ok_or_else(|| Error::msg("missing timestamp"))?;
+    let timestamp = header.timestamp.as_option().ok_or_else(|| Error::msg("missing timestamp"))?;
     require(timestamp.seconds >= 0, "negative timestamp")?;
     for tx in &block.transaction_traces {
-        require((1..=3).contains(&tx.status) && !tx.calls.is_empty(), "incomplete transaction persistence data")?;
+        require(
+            (1..=3).contains(&tx.status.to_i32()) && !tx.calls.is_empty(),
+            "incomplete transaction persistence data",
+        )?;
         require(tx.hash.len() == 32, "invalid transaction hash")?;
     }
     Ok(timestamp.seconds as u64)
@@ -163,7 +163,7 @@ fn push_logs(events: &mut pb::Events, config: &Config, frame: &Frame, call: &eth
         if is_transfer {
             events.transfers.push(pb::Transfer {
                 chain_id: config.params.chain_id,
-                scope: frame.scope as i32,
+                scope: frame.scope.into(),
                 transaction_hash: frame.tx_hash.to_vec(),
                 transaction_index: frame.tx_index,
                 call_index: call.index,
@@ -171,7 +171,7 @@ fn push_logs(events: &mut pb::Events, config: &Config, frame: &Frame, call: &eth
                 block_index: log.block_index,
                 ordinal: log.ordinal,
                 token: log.address.clone(),
-                shape: d.shape as i32,
+                shape: d.shape.into(),
                 from_zero: is_zero(&d.first),
                 to_zero: is_zero(&d.second),
                 self_transfer: !d.first.is_empty() && d.first == d.second,
@@ -185,7 +185,7 @@ fn push_logs(events: &mut pb::Events, config: &Config, frame: &Frame, call: &eth
         } else {
             events.approvals.push(pb::Approval {
                 chain_id: config.params.chain_id,
-                scope: frame.scope as i32,
+                scope: frame.scope.into(),
                 transaction_hash: frame.tx_hash.to_vec(),
                 transaction_index: frame.tx_index,
                 call_index: call.index,
@@ -193,7 +193,7 @@ fn push_logs(events: &mut pb::Events, config: &Config, frame: &Frame, call: &eth
                 block_index: log.block_index,
                 ordinal: log.ordinal,
                 token: log.address.clone(),
-                shape: d.shape as i32,
+                shape: d.shape.into(),
                 unlimited: d.shape == pb::LogShape::Erc20 && d.quantity == UINT256_MAX,
                 zero_value: d.shape == pb::LogShape::Erc20 && d.quantity == "0",
                 owner: d.first,
@@ -209,14 +209,14 @@ fn push_logs(events: &mut pb::Events, config: &Config, frame: &Frame, call: &eth
 
 pub fn project(block: &eth::Block, config: &Config) -> Result<pb::Events, Error> {
     let timestamp = validate_block(block, config)?;
-    let header = block.header.as_ref().unwrap();
+    let header = block.header.as_option().unwrap();
     let mut events = pb::Events::default();
     for tx in &block.transaction_traces {
         let frame = Frame {
             scope: pb::Scope::Transaction,
             tx_hash: &tx.hash,
             tx_index: tx.index,
-            persisted_tx: tx.status == eth::TransactionTraceStatus::Succeeded as i32,
+            persisted_tx: tx.status == eth::TransactionTraceStatus::Succeeded,
         };
         for call in &tx.calls {
             push_logs(&mut events, config, &frame, call);
@@ -233,10 +233,10 @@ pub fn project(block: &eth::Block, config: &Config) -> Result<pb::Events, Error>
     }
     events
         .transfers
-        .sort_by_key(|t| (t.scope, t.transaction_index, t.ordinal, t.call_index, t.log_index));
+        .sort_by_key(|t| (t.scope.to_i32(), t.transaction_index, t.ordinal, t.call_index, t.log_index));
     events
         .approvals
-        .sort_by_key(|a| (a.scope, a.transaction_index, a.ordinal, a.call_index, a.log_index));
+        .sort_by_key(|a| (a.scope.to_i32(), a.transaction_index, a.ordinal, a.call_index, a.log_index));
     events.clocks.push(pb::BlockClock {
         chain_id: config.params.chain_id,
         number: block.number,
