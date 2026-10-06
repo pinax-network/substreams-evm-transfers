@@ -68,5 +68,6 @@ cargo test --locked -p erc20-events
 make -C erc20/events build
 ```
 
-Packaging and live qualification remain paused; producer semantics on other
+Each live qualification step needs the owner's OK
+([live use](../../AGENTS.md#evidence)); producer semantics on other
 chains are qualified under [#8](https://github.com/pinax-network/substreams-evm-extended/issues/8).

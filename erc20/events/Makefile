@@ -6,7 +6,7 @@ include ../../build.mk
 build: export RUSTFLAGS := $(WASM_RUSTFLAGS)
 build:
 	cargo build --locked -p erc20-events --target wasm32-unknown-unknown --release
-# Packaging and live streaming stay paused until explicitly resumed.
+# Each live step needs the owner's OK: see "Live use" in AGENTS.md (Evidence).
 pack: build
 	substreams pack substreams.yaml -o $(SPKG)
 test:
