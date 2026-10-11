@@ -50,6 +50,17 @@ adapters if requested.
 
 `producer_versions` must be a nonempty subset of the reviewed Extended versions
 4 and 5. Unreviewed versions are rejected even when explicitly listed.
+`include_attempted` defaults to true; the manifest sets only `chain_id` and
+`producer_versions`.
+
+## Rust API
+
+`map_events` wraps `erc20_events::project(&Block, &Config)`, with the
+`Config` from `erc20_events::parse(params)`. The crate is also an `rlib`, so
+a host program that decodes Extended blocks itself can call `project`
+without the Substreams runtime and get the same `Events`. Its signature and
+output semantics (persisted versus attempted logs, system-call scope, log
+ordinals, nonstandard shapes) are part of the package contract.
 
 ## Evidence
 
