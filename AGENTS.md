@@ -34,6 +34,11 @@ owner's direction, next to `pinax-network/substreams-evm-balances` and
 - `erc20/tokens` keeps v0.3.3's `owner()` `eth_call` for USDT `Issue` and
   `Redeem` (owner, 2026-10-13), injectable as `OwnerLookup` for host callers.
   Every other package is RPC-free.
+- `evm-transfers` is the Token API `db_out` (owner, 2026-10-13): v0.3.3's
+  tables, row semantics and `clickhouse/schema.*.sql` byte for byte (sha256
+  pinned in its tests), so a new database can take the production history by
+  partition copy and the Token API queries keep working. Releases are
+  `<chain>:evm-transfers@v<version>` databases from v0.8.0 on.
 
 ## Provenance
 
