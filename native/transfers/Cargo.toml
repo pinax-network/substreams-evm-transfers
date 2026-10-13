@@ -1,0 +1,17 @@
+[package]
+name = "native-transfers"
+description = "Native value transfers of successful transactions and calls, and block rewards (native.transfers.v1)"
+edition = { workspace = true }
+version = "0.8.0"
+license = { workspace = true }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+substreams = { workspace = true }
+substreams-ethereum = { workspace = true }
+proto = { path = "../../proto" }
+
+[dev-dependencies]
+buffa = { workspace = true }

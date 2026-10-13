@@ -2,7 +2,11 @@
 resolver = "2"
 members = [
   "proto",
+  "common",
   "erc20/events",
+  "erc20/transfers",
+  "erc20/tokens",
+  "native/transfers",
 ]
 
 [workspace.package]

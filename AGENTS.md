@@ -24,6 +24,16 @@ owner's direction, next to `pinax-network/substreams-evm-balances` and
   transactions, log ordinals, nonstandard Transfer shapes).
 - Contract ABIs and generated decoders come from `substreams-abis` (tag
   `v2.0.0`); do not vendor ABI code here.
+- **Production parity** (owner, 2026-10-13). `erc20/transfers`,
+  `erc20/tokens` and `native/transfers` reproduce the maps that production
+  `evm-transfers` v0.3.3 runs (substreams-evm tag `evm-transfers-v0.3.3`),
+  with their protos byte for byte: the same output, including the receipt-log
+  fallback on BASE blocks and the other v0.3.3 behaviour each package README
+  lists under "Kept from v0.3.3". Changing any of it is a separate change the
+  owner approves.
+- `erc20/tokens` keeps v0.3.3's `owner()` `eth_call` for USDT `Issue` and
+  `Redeem` (owner, 2026-10-13), injectable as `OwnerLookup` for host callers.
+  Every other package is RPC-free.
 
 ## Provenance
 
