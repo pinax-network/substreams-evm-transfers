@@ -1,0 +1,4 @@
+# Inputs for `buf generate` (run in this directory) of src/pb.
+version: v2
+modules:
+  - path: v1

@@ -1,0 +1,27 @@
+# Rust build output and local diagnostic runs.
+target/
+out/
+*.rs.bk
+*.log
+
+# Local native sink state, schema caches and spools.
+state*.yaml
+.substreams/
+sink-state/
+sink-schema/
+spool/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Local credentials and editor/OS files.
+.env
+.env.*
+.substreams.env
+.DS_Store
+
+# SPKG reference, historical and current packages are committed deliberately.
+# SQL schemas are not globally ignored; generated local files belong under out/.

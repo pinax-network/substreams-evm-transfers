@@ -11,9 +11,9 @@ fn only_reviewed_producer_versions_can_be_configured() {
 }
 use buffa::Message;
 
-const FULL_BLOCK: &[u8] = include_bytes!("../../balances/tests/fixtures/bsc-122260950.pb");
-const WBNB_DEPOSIT: &[u8] = include_bytes!("../../balances/tests/fixtures/wbnb-mutations/122288015-tx18-deposit-nested-no-transfer.pb");
-const REVERTED_CHILD: &[u8] = include_bytes!("../../balances/tests/fixtures/wbnb-mutations/122288007-tx22-succeeded-with-reverted-child-write.pb");
+const FULL_BLOCK: &[u8] = include_bytes!("../tests/fixtures/bsc-122260950.pb");
+const WBNB_DEPOSIT: &[u8] = include_bytes!("../tests/fixtures/wbnb-mutations/122288015-tx18-deposit-nested-no-transfer.pb");
+const REVERTED_CHILD: &[u8] = include_bytes!("../tests/fixtures/wbnb-mutations/122288007-tx22-succeeded-with-reverted-child-write.pb");
 const WBNB: &str = "bb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c";
 
 fn config() -> Config {
