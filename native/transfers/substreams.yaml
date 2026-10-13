@@ -1,0 +1,29 @@
+specVersion: v0.1.0
+package:
+  name: evm_native_transfers
+  version: v0.8.0
+  url: https://github.com/pinax-network/substreams-evm-transfers
+  description: Extracts Native transfers. Ported from substreams-evm native-transfers v0.2.0 (aaae9dd).
+
+binaries:
+  default:
+    type: wasm/rust-v1
+    file: ../../target/wasm32-unknown-unknown/release/native_transfers.wasm
+
+# The proto of the v0.2.0 build that evm-transfers v0.3.3 imports, byte for
+# byte, at its path.
+protobuf:
+  files:
+    - v1/native-transfers.proto
+  importPaths:
+    - ../../proto
+
+modules:
+  - name: map_events
+    kind: map
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:native.transfers.v1.Events
+
+network: mainnet

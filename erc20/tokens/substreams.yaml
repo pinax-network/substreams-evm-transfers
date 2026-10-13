@@ -1,0 +1,29 @@
+specVersion: v0.1.0
+package:
+  name: erc20_tokens
+  version: v0.8.0
+  url: https://github.com/pinax-network/substreams-evm-transfers
+  description: ERC-20 Token-specific Events (DAI, SAI, USDC, USDT, WBTC, WETH, aeWETH, stETH). Ported from substreams-evm erc20-tokens v0.3.3.
+
+binaries:
+  default:
+    type: wasm/rust-v1
+    file: ../../target/wasm32-unknown-unknown/release/erc20_tokens.wasm
+
+# v0.3.3's proto, byte for byte, at its v0.3.3 path.
+protobuf:
+  files:
+    - v1/erc20-tokens.proto
+  importPaths:
+    - ../../proto
+
+modules:
+  - name: map_events
+    kind: map
+    doc: ERC-20 Token Events
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:erc20.tokens.v1.Events
+
+network: mainnet

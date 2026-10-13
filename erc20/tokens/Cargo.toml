@@ -1,0 +1,20 @@
+[package]
+name = "erc20-tokens"
+description = "Token-specific events of WETH, USDC, USDT, WBTC, SAI and stETH contracts (erc20.tokens.v1)"
+edition = { workspace = true }
+version = "0.8.0"
+license = { workspace = true }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+substreams = { workspace = true }
+substreams-abis = { workspace = true }
+substreams-ethereum = { workspace = true }
+common = { path = "../../common" }
+proto = { path = "../../proto" }
+
+[dev-dependencies]
+buffa = { workspace = true }
+tiny-keccak = { version = "2.0", features = ["keccak"] }

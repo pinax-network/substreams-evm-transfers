@@ -1,0 +1,28 @@
+specVersion: v0.1.0
+package:
+  name: erc20_transfers
+  version: v0.8.0
+  url: https://github.com/pinax-network/substreams-evm-transfers
+  description: ERC-20 Transfers Events. Ported from substreams-evm erc20-transfers v0.3.3.
+
+binaries:
+  default:
+    type: wasm/rust-v1
+    file: ../../target/wasm32-unknown-unknown/release/erc20_transfers.wasm
+
+# v0.3.3's proto, byte for byte, at its v0.3.3 path.
+protobuf:
+  files:
+    - v1/erc20-transfers.proto
+  importPaths:
+    - ../../proto
+
+modules:
+  - name: map_events
+    kind: map
+    inputs:
+      - source: sf.ethereum.type.v2.Block
+    output:
+      type: proto:erc20.transfers.v1.Events
+
+network: mainnet
