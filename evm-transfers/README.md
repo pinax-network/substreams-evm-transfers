@@ -177,9 +177,10 @@ v0.3.3 schema does not define) and `migrate/v0.2.1-patch.sql`, the wrapper
 manifest, the image and the Makefiles' live targets.
 
 The production build is the committed `spkg/evm-transfers-v0.3.3.spkg` of
-`d8a731d`, module `81ed3876…`; Rust 1.88.0 rebuilds its WASM byte for byte
-from `d8a731d` (sha256 `ecd489c9…`, with the original checkout path
-remapped, since its `proto` crate embeds absolute paths).
+`d8a731d`, module `81ed3876…`. Rust 1.88.0 on macOS, where it was built,
+rebuilds its WASM byte for byte from `d8a731d` (sha256 `ecd489c9…`), with the
+original checkout path remapped, since its `proto` crate embeds absolute
+paths.
 
 ## Validation
 
