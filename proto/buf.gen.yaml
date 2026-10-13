@@ -1,0 +1,12 @@
+# Regenerate src/pb with `buf generate` in this directory. Plugin version and
+# options are those of substreams-database-change 5.0.0's buf.gen.yaml; the
+# buffa code shipped in substreams 0.8.0 and substreams-ethereum 0.12.0 has the
+# same shape (lazy views, no unknown-field storage). src/pb/mod.rs is written
+# by hand; the plugin does not touch it.
+version: v2
+plugins:
+  - remote: buf.build/anthropics/buffa:v0.9.2
+    out: src/pb
+    opt:
+      - lazy_views=true
+      - unknown_fields=false
