@@ -103,8 +103,8 @@ Deviations from v0.3.3, none of which changes an output:
   longer than needed, as v0.8.0's `ethabi` 17 did.
 
 The production build is the committed `spkg/erc20-tokens-v0.3.3.spkg` of
-`d8a731d`, module `fe4d1f2d…`; Rust 1.88.0 rebuilds its WASM byte for byte
-from `d8a731d` (sha256 `933d1c85…`).
+`d8a731d`, module `fe4d1f2d…`. Rust 1.88.0 on macOS, where it was built,
+rebuilds its WASM byte for byte from `d8a731d` (sha256 `933d1c85…`).
 
 ## Build
 

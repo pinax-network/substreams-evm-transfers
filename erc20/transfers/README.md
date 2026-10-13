@@ -68,8 +68,8 @@ Deviations from v0.3.3, none of which changes an output:
   digits.
 
 The production build is the committed `spkg/erc20-transfers-v0.3.3.spkg` of
-`d8a731d`, module `7d6f427f…`; Rust 1.88.0 rebuilds its WASM byte for byte
-from `d8a731d` (sha256 `1f1ad2ff…`).
+`d8a731d`, module `7d6f427f…`. Rust 1.88.0 on macOS, where it was built,
+rebuilds its WASM byte for byte from `d8a731d` (sha256 `1f1ad2ff…`).
 
 ## Build
 

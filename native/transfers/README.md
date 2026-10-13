@@ -55,9 +55,10 @@ Deviations, none of which changes an output:
   read it as the default.
 
 The production build is `spkg/evm-native-transfers-v0.2.0.spkg`, committed in
-`f576af1` (2026-01-13) and moved by `ce22b43`, module `f2a74d0f…`; Rust 1.88.0
-rebuilds its WASM byte for byte from `f576af1` (sha256 `0f93aede…`), and its
-packed `v1/native-transfers.proto` is `aaae9dd`'s.
+`f576af1` (2026-01-13) and moved by `ce22b43`, module `f2a74d0f…`. Rust 1.88.0
+on macOS, where it was built, rebuilds its WASM byte for byte from `f576af1`
+(sha256 `0f93aede…`), and its packed `v1/native-transfers.proto` is
+`aaae9dd`'s.
 
 ## Build
 
