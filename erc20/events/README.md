@@ -74,6 +74,11 @@ transaction shows the same transfer attempted at ordinal 780 and persisted at
 self transfers, unlimited and revocation-shaped approvals, failed
 transactions, system calls and parameter guards.
 
+The [legacy v0.4.0 differential corpus](tests/fixtures/legacy-v0.4.0/README.md)
+executes the original package's WASM offline and compares its ERC-20 database
+rows with this native projector. It records expected differences explicitly;
+it does not assert universal package parity or change either decoder.
+
 ```sh
 cargo test --locked -p erc20-events
 make -C erc20/events build

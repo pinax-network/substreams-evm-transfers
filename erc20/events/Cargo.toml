@@ -21,3 +21,8 @@ sha2 = { version = "0.10", default-features = false }
 buffa = { workspace = true }
 buffa-types = { workspace = true }
 tiny-keccak = { version = "2.0", features = ["keccak"] }
+
+# Historical package execution is an offline test oracle, never a runtime source.
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+wasmi = { version = "=2.0.0", default-features = false, features = ["std", "validate", "portable-dispatch"] }
+substreams-database-change = "=5.0.0"
