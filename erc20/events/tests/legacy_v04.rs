@@ -11,7 +11,7 @@ use proto::pb::erc20::events::v1::{LogShape, Scope};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
-use substreams_database_change::pb::database::DatabaseChanges;
+use substreams_database_change::pb::sf::substreams::sink::database::v1::DatabaseChanges;
 use substreams_ethereum::pb::eth::v2 as eth;
 
 type Row = BTreeMap<String, String>;
@@ -301,15 +301,21 @@ fn legacy(oracle: &Oracle, block: &eth::Block) -> Option<(Vec<Row>, Vec<u8>)> {
     let events = oracle.map(&block.encode_to_vec())?;
     // Decode the actual map's output with the shared wire-compatible schema.
     proto::pb::erc20::transfers::v1::Events::decode_from_slice(&events).unwrap();
-    let clock = legacy_substreams::pb::substreams::Clock {
+    // Use the current SDK's wire-compatible Clock instead of linking the old
+    // SDK too: both versions export the same host alloc/dealloc symbols.
+    let clock = substreams::pb::substreams::Clock {
         id: hex::encode(&block.hash),
         number: block.number,
-        timestamp: Some(Default::default()),
+        timestamp: buffa::MessageField::some(buffa_types::google::protobuf::Timestamp {
+            seconds: block.header.as_option().unwrap().timestamp.as_option().unwrap().seconds,
+            ..Default::default()
+        }),
     };
-    let mut clock = clock;
-    clock.timestamp.as_mut().unwrap().seconds = block.header.as_option().unwrap().timestamp.as_option().unwrap().seconds;
-    let bytes = oracle.database(&prost::Message::encode_to_vec(&clock), &events);
-    let changes = <DatabaseChanges as prost::Message>::decode(bytes.as_slice()).unwrap();
+    let bytes = oracle.database(&clock.encode_to_vec(), &events);
+    // DBChanges v5 retains the v3 wire fields used here (Field.new_value is now
+    // named Field.value, still string field 2). Retain the original bytes below;
+    // do not re-encode through this newer schema or normalize their ordering.
+    let changes = DatabaseChanges::decode_from_slice(&bytes).unwrap();
     let rows = changes
         .table_changes
         .into_iter()
@@ -319,7 +325,7 @@ fn legacy(oracle: &Oracle, block: &eth::Block) -> Option<(Vec<Row>, Vec<u8>)> {
                 .fields
                 .into_iter()
                 .filter(|field| COLUMNS.contains(&field.name.as_str()))
-                .map(|field| (field.name, field.new_value))
+                .map(|field| (field.name, field.value))
                 .collect();
             assert_eq!(row.len(), COLUMNS.len(), "all eight string columns must be present");
             row
